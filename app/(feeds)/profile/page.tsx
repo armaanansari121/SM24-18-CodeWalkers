@@ -53,12 +53,12 @@ const ProfilePage = () => {
       <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="p-8">
-          <h1 className="text-3xl font-bold mb-6 text-orange-300">User Profile</h1>
+          <h1 className="text-3xl font-bold mb-6 text-gray-900">User Profile</h1>
           <div className="flex items-center space-x-6 mb-8">
             <Image src={userProfile.avatar} alt={userProfile.username} width={120} height={120} className="rounded-full ring-4 ring-orange-200" />
             <div>
               <h2 className="text-2xl font-semibold text-gray-800">{userProfile.username}</h2>
-              <p className="text-gray-600 mt-2">{userProfile.bio}</p>
+              {/* <p className="text-gray-600 mt-2">{userProfile.bio}</p> */}
             </div>
           </div>
           
