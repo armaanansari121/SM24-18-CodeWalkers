@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import Image from 'next/image';
 import { Post } from '@/types';
 import { ContractContext } from '../_contexts/ContractContext';
+import { Gateway_url } from '../config';
 
 interface PostCardProps {
   post: Post;
@@ -88,6 +89,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
       console.error("Error commenting on post:", error);
     }
   };
+  console.log(post);
 
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300">
@@ -109,7 +111,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         {post.image && (
           <div className="mb-4 rounded-lg overflow-hidden">
             <Image
-              src={post.image}
+              src={`${Gateway_url}/ipfs/${post.image}`}
               alt="Post image"
               width={500}
               height={300}

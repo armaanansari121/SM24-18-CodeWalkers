@@ -22,7 +22,7 @@ export default function FeedsPage() {
 
         for (let i = 1; i <= postCount; i++) {
           const post = await contract.methods.getPost(i).call(); // Assuming your contract has a getPost method
-
+    
           fetchedPosts.push({
             id: i.toString(),
             username: post._author, // Adjust to match your contract's return structure
@@ -34,7 +34,7 @@ export default function FeedsPage() {
               content: comment._content,  // Adjust based on your contract
             })),
             // timestamp: post._timestamp, // Adjust based on your contract
-            image: post._image || null, // Add this if your posts have images
+            image: post._imageHash || null, // Add this if your posts have images
           });
         }
 
