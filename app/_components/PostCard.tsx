@@ -113,7 +113,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
       alert("You must be logged in to comment on posts");
     }
   };
-  // console.log(post);
+  console.log(post);
 
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300">

@@ -20,6 +20,7 @@ export default function FeedsPage() {
       try {
         const userData = await contract.methods.getUser(account).call();
         setUserExists(userData._exists);
+        console.log("userDta",userData);
 
         const postCount = await contract.methods.postCount().call(); // Assuming your contract has a postCount method
         const fetchedPosts: Post[] = [];
@@ -39,7 +40,7 @@ export default function FeedsPage() {
           fetchedPosts.push({
             id: i.toString(),
             username: post._author, // Adjust to match your contract's return structure
-            userProfileImage: authorData.imageHash, // Default image or fetched from another source
+            userProfileImage:userData._imageHash , // Default image or fetched from another source
             title: post._title,
             description: post._description,
             comments: post._comments.map((comment: any) => ({
