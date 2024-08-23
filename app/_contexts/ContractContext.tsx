@@ -21,7 +21,7 @@ interface ContractContextType {
   setGovernanceContract: (contract: any) => void;
 }
 
-const ContractContext = createContext<ContractContextType | undefined>(
+export const ContractContext = createContext<ContractContextType | undefined>(
   undefined
 );
 
