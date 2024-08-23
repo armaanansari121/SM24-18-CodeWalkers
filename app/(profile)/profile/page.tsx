@@ -5,7 +5,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useContract } from "../../_contexts/ContractContext";
-import CreateProfileModal from "../../_components/CreateUserModal";
+import CreateUserModal from "../../_components/CreateUserModal";
+import { Gateway_url } from "@/app/config";
 
 interface UserProfile {
   imageHash: string;
@@ -50,6 +51,25 @@ const ProfilePage = () => {
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
   const [userExists, setUserExists] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+  const handleCreateProfile = async (imageFile: File | null, ipfsHash: string | null) => {
+    if (!contract || !account || !ipfsHash) {
+      console.error("Missing required data for profile creation");
+      return;
+    }
+
+    try {
+    
+      await contract.methods.createUser(ipfsHash).send({ from: account });
+      console.log("User profile created successfully");
+      setShowModal(false);
+      // Refetch user data to update the UI
+      await fetchUserData();
+    } catch (error) {
+      console.error("Error creating user profile:", error);
+      alert("Failed to create user profile. Please try again.");
+    }
+  };
 
   // Fetching user data function
   const fetchUserData = async () => {
@@ -164,7 +184,7 @@ const ProfilePage = () => {
                 </h1>
                 <div className="flex items-center space-x-6 mb-8">
                   <Image
-                    src={userProfile?.avatar || "/default-avatar.jpg"}
+                    src={`${Gateway_url}/ipfs/${userProfile?.imageHash}`}
                     alt={userProfile?.username || account}
                     width={120}
                     height={120}
@@ -350,10 +370,10 @@ const ProfilePage = () => {
 
       {/* Profile creation modal */}
       {showModal && (
-        <CreateProfileModal
+        <CreateUserModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          onSubmit={() => {}}
+          onSubmit={handleCreateProfile}
         />
       )}
     </div>
