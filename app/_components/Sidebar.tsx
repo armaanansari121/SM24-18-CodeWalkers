@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import CreateSubgroupModal from './CreateSubgroupModal';
 import { useContract } from '../_contexts/ContractContext';
+import { Subgroup } from '@/types';
 
 const Sidebar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [subscribedGroups, setSubscribedGroups] = useState([]);
+  const [subscribedGroups, setSubscribedGroups] = useState<Subgroup[]>([]);
   const { contract, account } = useContract();
 
   useEffect(() => {
@@ -19,7 +20,7 @@ const Sidebar = () => {
 
     try {
       const subgroupCount = await contract.methods.subgroupCount().call();
-      const groups = [];
+      const groups: Subgroup[] = [];
 
       for (let i = 1; i <= subgroupCount; i++) {
         const subgroup = await contract.methods.getSubgroup(i).call();
@@ -29,7 +30,7 @@ const Sidebar = () => {
           groups.push({
             id: i,
             name: subgroup._name,
-            subscriberCount: subgroup._subscriberCount,
+            subscriberCount: parseInt(subgroup._subscriberCount),
             // You might want to add an icon based on the subgroup name or use a default one
             icon: '🔹'
           });
@@ -41,8 +42,7 @@ const Sidebar = () => {
       console.error("Error fetching subgroups:", error);
     }
   };
-
-  const handleCreateSubgroup = async (name) => {
+  const handleCreateSubgroup = async (name: string) => {
     if (!contract || !account) return;
 
     try {

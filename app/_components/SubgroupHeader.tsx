@@ -63,11 +63,12 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({ subgroup }) => {
       }
     }
   };
+  console.log(proposals);
 
   return (
     <div className="bg-white shadow rounded-lg p-6 mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">{subgroup.name}</h1>
+        <h1 className="text-3xl text-black font-bold">{subgroup.name}</h1>
         <button
           onClick={() => setShowCreatePoll(!showCreatePoll)}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -84,14 +85,14 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({ subgroup }) => {
             value={pollDescription}
             onChange={(e) => setPollDescription(e.target.value)}
             placeholder="Poll description"
-            className="w-full p-2 mb-2 border rounded"
+            className="w-full text-black p-2 mb-2 border rounded"
           />
           <input
             type="number"
             value={voteThreshold}
             onChange={(e) => setVoteThreshold(e.target.value)}
             placeholder="Vote threshold"
-            className="w-full p-2 mb-2 border rounded"
+            className="w-full text-black p-2 mb-2 border rounded"
           />
           <button
             onClick={handleCreatePoll}
@@ -101,9 +102,10 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({ subgroup }) => {
           </button>
         </div>
       )}
+      
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Active Polls</h2>
+        <h2 className="text-2xl text-gray-800 font-semibold">Active Polls</h2>
         {proposals.map((proposal) => (
           <div key={proposal.id} className="border p-4 rounded">
             <p className="font-semibold">{proposal.description}</p>

@@ -2,18 +2,14 @@
 
 import PostCard from '@/app/_components/PostCard';
 import SearchBar from '@/app/_components/SearchBar';
+import SubgroupHeader from '@/app/_components/SubgroupHeader';
 import { useContract } from '@/app/_contexts/ContractContext';
 import { Post, Subgroup } from '@/types';
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Web3 from 'web3';
 
-const SubgroupHeader: React.FC<{ subgroup: Subgroup }> = ({ subgroup }) => (
-  <div className="bg-white shadow rounded-lg p-6 mb-6">
-    <h1 className="text-3xl font-bold mb-2">{subgroup.name}</h1>
-    <p className="text-gray-600">Subscribers: {subgroup.subscriberCount}</p>
-  </div>
-);
+
 
 export default function SubgroupFeedPage() {
   const params = useParams();
@@ -23,18 +19,16 @@ export default function SubgroupFeedPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { contract} = useContract();
-  console.log("Contract:", contract);
-
 
   useEffect(() => {
     const fetchSubgroupData = async () => {
       
     
       try {
-        console.log("Subgroup ID:", subgroupId);
+        
         if(contract){
         const subgroupData = await contract.methods.getSubgroup(subgroupId).call();
-        console.log("Subgroup data:",subgroupData);
+       
         
         if (!subgroupData || !subgroupData._name) {
           console.log("Subgroup data is invalid");
