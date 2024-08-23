@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Swartz",
-  description: "",
+  description: "Decentralized social media platform",
 };
 
 export default function RootLayout({
