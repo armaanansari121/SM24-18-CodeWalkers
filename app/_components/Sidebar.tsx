@@ -32,7 +32,7 @@ const Sidebar = () => {
           <ul>
             {subscribedGroups.map((group) => (
               <li key={group.id}>
-                <Link href={`/group/${group.id}`} className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200">
+                <Link href={`/subGroups/${group.id}`} className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200">
                   <span className="mr-3 text-xl">{group.icon}</span>
                   {group.name}
                 </Link>
