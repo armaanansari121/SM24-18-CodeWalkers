@@ -1,30 +1,62 @@
-"use client"; 
+"use client";
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
-import CreateSubgroupModal from './CreateSubgroupModal'; // Make sure to create this component
+import { useState, useEffect } from 'react';
+import CreateSubgroupModal from './CreateSubgroupModal';
 import { useContract } from '../_contexts/ContractContext';
 
 const Sidebar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const {contract,account}=useContract();
+  const [subscribedGroups, setSubscribedGroups] = useState([]);
+  const { contract, account } = useContract();
 
-  // Mock data for subscribed groups
-  const subscribedGroups = [
-    { id: 1, name: 'Tech Enthusiasts', icon: '💻' },
-    { id: 2, name: 'Crypto Traders', icon: '💰' },
-    { id: 3, name: 'Art & Design', icon: '🎨' },
-    { id: 4, name: 'Fitness Freaks', icon: '💪' },
-  ];
+  useEffect(() => {
+    fetchSubgroups();
+  }, [contract, account]);
 
-  const handleCreateSubgroup = async (name: string) => {
-    // Here you would call the contract function
-    await contract.methods.createSubgroup(name).send({ from: account });
-    console.log(`Creating subgroup: ${name}`);
-    // You'd need to integrate with your web3 library here to call the contract function
-    // For example: contract.methods.createSubgroup(name).send({ from: userAddress })
-    setIsModalOpen(false);
+  const fetchSubgroups = async () => {
+    if (!contract || !account) return;
+
+    try {
+      const subgroupCount = await contract.methods.subgroupCount().call();
+      const groups = [];
+
+      for (let i = 1; i <= subgroupCount; i++) {
+        const subgroup = await contract.methods.getSubgroup(i).call();
+        
+
+       
+          groups.push({
+            id: i,
+            name: subgroup._name,
+            subscriberCount: subgroup._subscriberCount,
+            // You might want to add an icon based on the subgroup name or use a default one
+            icon: '🔹'
+          });
+        
+      }
+
+      setSubscribedGroups(groups);
+    } catch (error) {
+      console.error("Error fetching subgroups:", error);
+    }
   };
+
+  const handleCreateSubgroup = async (name) => {
+    if (!contract || !account) return;
+
+    try {
+      await contract.methods.createSubgroup(name).send({ from: account });
+      console.log(`Creating subgroup: ${name}`);
+      setIsModalOpen(false);
+      // Refresh the subgroups list after creating a new one
+      fetchSubgroups();
+    } catch (error) {
+      console.error("Error creating subgroup:", error);
+    }
+  };
+
+  console.log(subscribedGroups);
 
   return (
     <>
@@ -40,26 +72,26 @@ const Sidebar = () => {
             Home
           </Link>
           <div className="mt-8">
-            <h3 className="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Subscribed Groups
-            </h3>
-            <ul>
-              {subscribedGroups.map((group) => (
-                <li key={group.id}>
-                  <Link href={`/subgroups/${group.id}`} className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200">
-                    <span className="mr-3 text-xl">{group.icon}</span>
-                    {group.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-[1/2] ml-10 mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
-            >
-              Create Subgroup
-            </button>
-          </div>
+          <h3 className="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Subscribed Groups
+          </h3>
+          <ul>
+            {subscribedGroups.map((group) => (
+              <li key={group.id}>
+                <Link href={`/subgroups/${group.id}`} className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200">
+                  <span className="mr-3 text-xl">{group.icon}</span>
+                  {group.name} ({group.subscriberCount})
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="w-[1/2] ml-10 mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+          >
+            Create Subgroup
+          </button>
+        </div>
         </nav>
         <div className="p-4 border-t border-gray-200">
           <Link href="/profile" className="flex items-center text-gray-700 hover:text-blue-600 transition-colors duration-200">
