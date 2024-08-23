@@ -1,9 +1,10 @@
 // components/PostCard.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import Image from 'next/image';
-import { Post, Comment } from '@/types';
+import { Post } from '@/types';
+import { ContractContext } from '../_contexts/ContractContext'; // Updated import statement
 
 interface PostCardProps {
   post: Post;
@@ -12,11 +13,39 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const { contract, account } = useContext(ContractContext);
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleLike = async () => {
+    try {
+      await contract.methods.likePost(post.id).send({ from: account });
+      // Optionally: Update the UI or fetch updated post data
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await contract.methods.savePost(post.id).send({ from: account });
+      // Optionally: Update the UI or fetch updated post data
+    } catch (error) {
+      console.error("Error saving post:", error);
+    }
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add comment logic here
-    setNewComment('');
+    if (!newComment.trim()) return;
+
+    try {
+      console.log(`Adding comment to post ${post.id}: ${newComment}`); // Log comment details
+      await contract.methods.addComment(post.id, newComment).send({ from: account });
+      console.log('Comment added successfully');
+      setNewComment('');
+      // Optionally: Fetch updated comments or post data
+    } catch (error) {
+      console.error("Error commenting on post:", error);
+    }
   };
 
   return (
@@ -34,14 +63,17 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           </div>
         )}
         <div className="flex justify-between items-center text-gray-500">
-          <button className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200">
+          <button
+            onClick={handleLike}
+            className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
             <span>Like</span>
           </button>
-          <button 
-            onClick={() => setShowComments(!showComments)} 
+          <button
+            onClick={() => setShowComments(!showComments)}
             className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,7 +81,10 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             </svg>
             <span>Comment</span>
           </button>
-          <button className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200">
+          <button
+            onClick={handleSave}
+            className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
@@ -73,8 +108,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
               placeholder="Add a comment..."
               className="w-full p-3 border border-gray-300 rounded-lg text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">

@@ -18,7 +18,7 @@ interface ContractContextType {
   setAccount: (account: any) => void;
 }
 
-const ContractContext = createContext<ContractContextType | undefined>(
+export const ContractContext = createContext<ContractContextType | undefined>(
   undefined
 );
 
