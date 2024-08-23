@@ -86,11 +86,13 @@ const Sidebar = () => {
             ))}
           </ul>
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="w-[1/2] ml-10 mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
-          >
-            Create Subgroup
-          </button>
+  onClick={() => setIsModalOpen(true)}
+  className="w-[1/3] ml-10 mt-4 bg-transparent border-2 border-orange-300 text-orange-300 font-medium py-1 px-3 rounded-md shadow-sm transition-all duration-200 hover:bg-orange-300 hover:text-gray-800"
+>
+  Create Subgroup
+</button>
+
+
         </div>
         </nav>
         <div className="p-4 border-t border-gray-200">
