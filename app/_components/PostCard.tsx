@@ -1,10 +1,7 @@
-// components/PostCard.tsx
-"use client";
-
-import { useState, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Image from 'next/image';
 import { Post } from '@/types';
-import { ContractContext } from '../_contexts/ContractContext'; // Updated import statement
+import { ContractContext } from '../_contexts/ContractContext';
 
 interface PostCardProps {
   post: Post;
@@ -13,23 +10,67 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [comments, setComments] = useState<{ username: string; content: string }[]>([]);
   const { contract, account } = useContext(ContractContext);
+
+  useEffect(() => {
+    if (contract && account) {
+      loadPostData();
+    }
+  }, [contract, account, post.id]);
+
+  const loadPostData = async () => {
+    try {
+      const postData = await contract.methods.getPost(post.id).call();
+      setLikeCount(parseInt(postData._likeCount));
+      
+      const isLiked = await contract.methods.postLikes(post.id, account).call();
+      setLiked(isLiked);
+
+      const userData = await contract.methods.getUser(account).call();
+      setSaved(userData._savedPosts.includes(post.id.toString()));
+
+      const commentPromises = postData._comments.map((commentId: string) =>
+        contract.methods.comments(commentId).call()
+      );
+      const commentData = await Promise.all(commentPromises);
+      setComments(commentData.map((comment: any) => ({
+        username: comment.author,
+        content: comment.content
+      })));
+    } catch (error) {
+      console.error("Error loading post data:", error);
+    }
+  };
 
   const handleLike = async () => {
     try {
-      await contract.methods.likePost(post.id).send({ from: account });
-      // Optionally: Update the UI or fetch updated post data
+      if (liked) {
+        await contract.methods.unlikePost(post.id).send({ from: account });
+        setLikeCount(prevCount => prevCount - 1);
+      } else {
+        await contract.methods.likePost(post.id).send({ from: account });
+        setLikeCount(prevCount => prevCount + 1);
+      }
+      setLiked(!liked);
     } catch (error) {
-      console.error("Error liking post:", error);
+      console.error("Error liking/unliking post:", error);
     }
   };
 
   const handleSave = async () => {
     try {
-      await contract.methods.savePost(post.id).send({ from: account });
-      // Optionally: Update the UI or fetch updated post data
+      if (saved) {
+        await contract.methods.unsavePost(post.id).send({ from: account });
+      } else {
+        await contract.methods.savePost(post.id).send({ from: account });
+      }
+      setSaved(!saved);
     } catch (error) {
-      console.error("Error saving post:", error);
+      console.error("Error saving/unsaving post:", error);
     }
   };
 
@@ -38,11 +79,11 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     if (!newComment.trim()) return;
 
     try {
-      console.log(`Adding comment to post ${post.id}: ${newComment}`); // Log comment details
       await contract.methods.addComment(post.id, newComment).send({ from: account });
-      console.log('Comment added successfully');
+      setComments([...comments, { username: account, content: newComment }]);
       setNewComment('');
-      // Optionally: Fetch updated comments or post data
+      // Reload comments to get the updated list from the contract
+      loadPostData();
     } catch (error) {
       console.error("Error commenting on post:", error);
     }
@@ -79,15 +120,13 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <div className="flex justify-between items-center text-gray-500">
           <button
             onClick={handleLike}
-            className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200"
+            className={`flex items-center space-x-2 transition-colors duration-200 ${liked ? 'text-red-500' : 'hover:text-blue-500'}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={liked ? 'red' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <span>Like</span>
+            <span>Like ({likeCount})</span>
           </button>
-          <button
-            onClick={() => setShowComments(!showComments)}
           <button
             onClick={() => setShowComments(!showComments)}
             className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200"
@@ -95,7 +134,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
-              fill="red"
+              fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
@@ -106,22 +145,22 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                 d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
               />
             </svg>
-            <span>Comment</span>
+            <span>Comment ({comments.length})</span>
           </button>
           <button
             onClick={handleSave}
-            className="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200"
+            className={`flex items-center space-x-2 transition-colors duration-200 ${saved ? 'text-blue-500' : 'hover:text-blue-500'}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={saved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
-            <span>Save</span>
+            <span>{saved ? 'Saved' : 'Save'}</span>
           </button>
         </div>
       </div>
       {showComments && (
         <div className="p-6 border-t border-gray-200 bg-gray-50">
-          {post.comments.map((comment, index) => (
+          {comments.map((comment, index) => (
             <div key={index} className="mb-3 bg-white p-3 rounded-lg shadow">
               <span className="font-semibold text-blue-600">
                 {comment.username}:{" "}
@@ -137,8 +176,6 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
               placeholder="Add a comment..."
               className="w-full p-3 border border-gray-300 rounded-lg text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <button
-              type="submit"
             <button
               type="submit"
               className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center"
@@ -165,4 +202,3 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 };
 
 export default PostCard;
-
