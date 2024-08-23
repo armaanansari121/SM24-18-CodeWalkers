@@ -32,9 +32,10 @@ export default function SubgroupFeedPage() {
     
       try {
         console.log("Subgroup ID:", subgroupId);
-        const subgroupData = await contract.methods.getSubgroup(1).call();
-        console.log("Subgroup data:");
-
+        if(contract){
+        const subgroupData = await contract.methods.getSubgroup(subgroupId).call();
+        console.log("Subgroup data:",subgroupData);
+        
         if (!subgroupData || !subgroupData._name) {
           console.log("Subgroup data is invalid");
           setError("Subgroup not found");
@@ -63,6 +64,7 @@ export default function SubgroupFeedPage() {
         }));
 
         setPosts(formattedPosts);
+      }
       } catch (error) {
         console.error('Error fetching subgroup data:', error);
         
