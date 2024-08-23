@@ -98,7 +98,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             alt={post.username}
             width={48}
             height={48}
-            className="rounded-full border-2 border-blue-500"
+            className="rounded-full border-2 border-blue-500" 
           />
           <span className="ml-3 font-semibold text-lg text-gray-800">
             {post.username}
