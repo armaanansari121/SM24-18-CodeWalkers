@@ -154,7 +154,7 @@ const ProfilePage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="p-8">
             {userExists ? (
