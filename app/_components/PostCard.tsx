@@ -5,6 +5,7 @@ import { Post } from "@/types";
 import { ContractContext } from "../_contexts/ContractContext";
 import { Gateway_url } from "../config";
 import { useRouter } from "next/router";
+import FollowButton from "./FollowButton";
 
 interface PostCardProps {
   post: Post;
@@ -20,6 +21,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
   const [comments, setComments] = useState<
     { username: string; content: string }[]
   >([]);
+  const [isFollowing, setIsFollowing] = useState(post.isFollowingAuthor);
   const { contract, account } = useContext(ContractContext);
 
   useEffect(() => {
@@ -126,6 +128,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
           />
           <span className="ml-3 font-semibold text-lg text-gray-800">
             {post.username}
+          </span>
+          <span className="ml-auto text-xs text-gray-600">
+            {!isFollowing && (
+              <FollowButton
+                userToFollow={post.username}
+                stateChange={setIsFollowing}
+              />
+            )}
           </span>
         </div>
         <h2 className="text-2xl font-bold mb-3 text-gray-900">{post.title}</h2>

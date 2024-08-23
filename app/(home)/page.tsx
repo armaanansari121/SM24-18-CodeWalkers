@@ -26,7 +26,16 @@ export default function FeedsPage() {
 
         for (let i = 1; i <= postCount; i++) {
           const post = await contract.methods.getPost(i).call(); // Assuming your contract has a getPost method
-          const authorData = await contract.methods.users(post._author).call();
+          const authorData = await contract.methods
+            .getUser(post._author)
+            .call();
+          let isFollowing = false;
+          for (let i = 0; i < authorData._followers.length; i++) {
+            if (authorData._followers[i] == account) {
+              isFollowing = true;
+              break;
+            }
+          }
           fetchedPosts.push({
             id: i.toString(),
             username: post._author, // Adjust to match your contract's return structure
@@ -39,6 +48,7 @@ export default function FeedsPage() {
             })),
             // timestamp: post._timestamp, // Adjust based on your contract
             image: post._imageHash || null, // Add this if your posts have images
+            isFollowingAuthor: isFollowing,
           });
         }
 
