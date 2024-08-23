@@ -1,6 +1,7 @@
 // app/feeds/page.tsx
-import PostCard from '../../_components/PostCard';
-import { Post } from '../../../types';
+import PostCard from '../_components/PostCard';
+import { Post } from '../../types';
+import SearchBar from '../_components/SearchBar';
 
 async function getPosts() {
   // This is where you'd fetch posts from your API or smart contract
@@ -39,6 +40,10 @@ export default async function FeedsPage() {
 
   return (
     <div className="mt-6 space-y-6">
+      <div className=''>
+        <SearchBar/>
+
+      </div>
       {posts.map((post: Post) => (
         <PostCard key={post.id} post={post} />
       ))}
