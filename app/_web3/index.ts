@@ -1,1 +1,2 @@
-export const contractAddress="0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export const contractAddress="0x22a31b53a9Fa74D863Ef0A8e54CF2b3Ff1a4d6Cb";
+export const GovernanceAddress="0xA1403327374B08fA9B884d269A3Da289c057AF38";

@@ -10,13 +10,14 @@ contract Swartz is Ownable, ReentrancyGuard {
     }
 
     struct User {
-        string username;
+        bool exists;
         string imageHash;
         uint256[] posts;
         uint256[] comments;
         address[] followers;
         address[] following;
         uint256[] subgroupsJoined;
+        uint256[] savedPosts;
         mapping(address => bool) isFollower;
         mapping(address => bool) isFollowing;
         mapping(uint256 => bool) isSubgroupsJoined;
@@ -48,7 +49,6 @@ contract Swartz is Ownable, ReentrancyGuard {
         uint256 subscriberCount;
     }
 
-    mapping(string => bool) public isTakenUsername;
     mapping(string => bool) public isTakenSubgroupName;
     mapping(address => User) public users;
     mapping(uint256 => Post) public posts;
@@ -61,37 +61,8 @@ contract Swartz is Ownable, ReentrancyGuard {
     uint256 public subgroupCount;
     uint256 public constant MAX_SUBGROUPS_PER_POST = 10;
 
-    event UserCreated(address indexed userAddress, string username);
-    event UserUpdated(
-        address indexed userAddress,
-        string username,
-        string imageHash
-    );
-    event PostCreated(
-        uint256 indexed postId,
-        address indexed author,
-        string title
-    );
-    event CommentAdded(
-        uint256 indexed postId,
-        uint256 indexed commentId,
-        address indexed author
-    );
-    event SubgroupCreated(uint256 indexed subgroupId, string name);
-    event UserFollowed(address indexed follower, address indexed followed);
-    event UserUnfollowed(
-        address indexed unfollower,
-        address indexed unfollowed
-    );
-    event CommentDeleted(uint256 indexed postId, uint256 indexed commentId);
-    event PostDeleted(uint256 indexed postId);
-    event PostLiked(uint256 indexed postId, address indexed liker);
-    event PostUnliked(uint256 indexed postId, address indexed unliker);
-    event SubgroupJoined(uint256 indexed subgroupId, address indexed user);
-    event SubgroupLeft(uint256 indexed subgroupId, address indexed user);
-
     modifier userExists(address _user) {
-        require(bytes(users[_user].username).length > 0, "User does not exist");
+        require(users[_user].exists, "User does not exist");
         _;
     }
 
@@ -121,28 +92,10 @@ contract Swartz is Ownable, ReentrancyGuard {
         _;
     }
 
-    function createUser(string memory _username, string memory _imageHash)
-        public
-    {
-        require(
-            bytes(users[msg.sender].username).length == 0,
-            "User already exists"
-        );
-        require(bytes(_username).length > 0, "Username cannot be empty");
-        require(!isTakenUsername[_username], "Username Taken.");
-        users[msg.sender].username = _username;
+    function createUser(string memory _imageHash) public {
+        require(!users[msg.sender].exists, "User already exists");
+        users[msg.sender].exists = true;
         users[msg.sender].imageHash = _imageHash;
-        emit UserCreated(msg.sender, _username);
-    }
-
-    function updateUser(string memory _username, string memory _imageHash)
-        public
-        userExists(msg.sender)
-    {
-        require(bytes(_username).length > 0, "Username cannot be empty");
-        users[msg.sender].username = _username;
-        users[msg.sender].imageHash = _imageHash;
-        emit UserUpdated(msg.sender, _username, _imageHash);
     }
 
     function createPost(
@@ -174,10 +127,12 @@ contract Swartz is Ownable, ReentrancyGuard {
                 _subgroups[i] > 0 && _subgroups[i] <= subgroupCount,
                 "Invalid subgroup ID"
             );
-            require(subgroups[_subgroups[i]].subscribers[msg.sender], "Not a member of group.");
+            require(
+                subgroups[_subgroups[i]].subscribers[msg.sender],
+                "Not a member of group."
+            );
             subgroups[_subgroups[i]].posts.push(postCount);
         }
-        emit PostCreated(postCount, msg.sender, _title);
     }
 
     function addComment(uint256 _postId, string memory _content)
@@ -195,7 +150,6 @@ contract Swartz is Ownable, ReentrancyGuard {
         );
         posts[_postId].comments.push(commentCount);
         users[msg.sender].comments.push(commentCount);
-        emit CommentAdded(_postId, commentCount, msg.sender);
     }
 
     function createSubgroup(string memory _name) public userExists(msg.sender) {
@@ -208,7 +162,6 @@ contract Swartz is Ownable, ReentrancyGuard {
         users[msg.sender].isSubgroupsJoined[subgroupCount] = true;
         users[msg.sender].subgroupsJoined.push(subgroupCount);
         isTakenSubgroupName[_name] = true;
-        emit SubgroupCreated(subgroupCount, _name);
     }
 
     function joinSubgroup(uint256 _subgroupId)
@@ -224,7 +177,6 @@ contract Swartz is Ownable, ReentrancyGuard {
         subgroups[subgroupCount].subscriberCount++;
         users[msg.sender].isSubgroupsJoined[_subgroupId] = true;
         users[msg.sender].subgroupsJoined.push(_subgroupId);
-        emit SubgroupJoined(_subgroupId, msg.sender);
     }
 
     function leaveSubgroup(uint256 _subgroupId)
@@ -249,7 +201,6 @@ contract Swartz is Ownable, ReentrancyGuard {
                 break;
             }
         }
-        emit SubgroupLeft(_subgroupId, msg.sender);
     }
 
     function followUser(address _userToFollow)
@@ -266,7 +217,6 @@ contract Swartz is Ownable, ReentrancyGuard {
         users[_userToFollow].isFollower[msg.sender] = true;
         users[msg.sender].following.push(_userToFollow);
         users[_userToFollow].followers.push(msg.sender);
-        emit UserFollowed(msg.sender, _userToFollow);
     }
 
     function unfollowUser(address _userToUnfollow)
@@ -297,7 +247,6 @@ contract Swartz is Ownable, ReentrancyGuard {
                 break;
             }
         }
-        emit UserUnfollowed(msg.sender, _userToUnfollow);
     }
 
     function likePost(uint256 _postId)
@@ -308,7 +257,6 @@ contract Swartz is Ownable, ReentrancyGuard {
         require(!postLikes[_postId][msg.sender], "Already liked this post");
         postLikes[_postId][msg.sender] = true;
         posts[_postId].likeCount++;
-        emit PostLiked(_postId, msg.sender);
     }
 
     function unlikePost(uint256 _postId)
@@ -319,7 +267,6 @@ contract Swartz is Ownable, ReentrancyGuard {
         require(postLikes[_postId][msg.sender], "Haven't liked this post");
         postLikes[_postId][msg.sender] = false;
         posts[_postId].likeCount--;
-        emit PostUnliked(_postId, msg.sender);
     }
 
     function deleteComment(uint256 _postId, uint256 _commentId)
@@ -333,7 +280,6 @@ contract Swartz is Ownable, ReentrancyGuard {
             "Not the comment author"
         );
         comments[_commentId].isDeleted = true;
-        emit CommentDeleted(_postId, _commentId);
     }
 
     function deletePost(uint256 _postId)
@@ -343,30 +289,54 @@ contract Swartz is Ownable, ReentrancyGuard {
     {
         require(posts[_postId].author == msg.sender, "Not the post author");
         posts[_postId].isDeleted = true;
-        emit PostDeleted(_postId);
+    }
+
+    function savePost(uint256 _postId)
+        public
+        userExists(msg.sender)
+        validPost(_postId)
+    {
+        User storage user = users[msg.sender];
+        user.savedPosts.push(_postId);
+    }
+
+    function unsavePost(uint256 _postId)
+        public
+        userExists(msg.sender)
+        validPost(_postId)
+    {
+        User storage user = users[msg.sender];
+        for (uint256 i = 0; i < user.savedPosts.length; i++) {
+            if (user.savedPosts[i] == _postId) {
+                user.savedPosts[i] = user.savedPosts[
+                    user.savedPosts.length - 1
+                ];
+                user.savedPosts.pop();
+            }
+        }
     }
 
     function getUser(address _user)
         public
         view
         returns (
-            string memory username,
-            string memory imageHash,
-            uint256[] memory userPosts,
-            uint256[] memory userComments,
-            address[] memory followers,
-            address[] memory following,
-            uint256[] memory subgroupsJoined
+            bool _exists,
+            string memory _imageHash,
+            uint256[] memory _userPosts,
+            uint256[] memory _userComments,
+            address[] memory _followers,
+            address[] memory _following,
+            uint256[] memory _subgroupsJoined
         )
     {
         User storage user = users[_user];
-        username = user.username;
-        imageHash = user.imageHash;
-        userPosts = user.posts;
-        userComments = user.comments;
-        followers = user.followers;
-        following = user.following;
-        subgroupsJoined = user.subgroupsJoined;
+        _exists = user.exists;
+        _imageHash = user.imageHash;
+        _userPosts = user.posts;
+        _userComments = user.comments;
+        _followers = user.followers;
+        _following = user.following;
+        _subgroupsJoined = user.subgroupsJoined;
     }
 
     function getPost(uint256 _postId)
