@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 // app/profile/page.tsx
 'use client';
 
@@ -48,70 +49,78 @@ const ProfilePage = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-purple-50 to-blue-50">
-      <div className="bg-white shadow-xl rounded-lg overflow-hidden border border-purple-100">
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="p-8">
-          <h1 className="text-3xl font-bold mb-6 text-purple-800">User Profile</h1>
+          <h1 className="text-3xl font-bold mb-6 text-orange-300">User Profile</h1>
           <div className="flex items-center space-x-6 mb-8">
-            <Image src={userProfile.avatar} alt={userProfile.username} width={120} height={120} className="rounded-full ring-4 ring-purple-200" />
+            <Image src={userProfile.avatar} alt={userProfile.username} width={120} height={120} className="rounded-full ring-4 ring-orange-200" />
             <div>
               <h2 className="text-2xl font-semibold text-gray-800">{userProfile.username}</h2>
               <p className="text-gray-600 mt-2">{userProfile.bio}</p>
             </div>
           </div>
           
-          <div className="flex space-x-4 mb-8">
-            {['posts', 'activities', 'saved'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab as 'posts' | 'activities' | 'saved')}
-                className={`px-6 py-3 rounded-full font-medium transition-colors duration-200 ${
-                  activeTab === tab ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
+          <div className="border-b border-gray-200">
+            <nav className="flex">
+              {['posts', 'activities', 'saved'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as 'posts' | 'activities' | 'saved')}
+                  className={`px-4 py-4 text-sm font-medium ${
+                    activeTab === tab
+                      ? 'border-b-2 border-blue-500 text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </nav>
           </div>
 
-          {activeTab === 'posts' && (
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-purple-700">My Posts</h3>
-              {userPosts.map(post => (
-                <div key={post.id} className="mb-6 p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
-                  <h4 className="font-semibold text-lg text-gray-800 mb-2">{post.title}</h4>
-                  <p className="text-gray-600">{post.content}</p>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="p-6 sm:p-8">
+            {activeTab === 'posts' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-medium text-gray-900">My Posts</h2>
+                {userPosts.map(post => (
+                  <div key={post.id} className="bg-white border border-gray-200 rounded-md shadow-sm p-4">
+                    <h3 className="text-base font-semibold text-gray-900">{post.title}</h3>
+                    <p className="mt-2 text-sm text-gray-500">{post.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
-          {activeTab === 'activities' && (
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-purple-700">Activities</h3>
-              {userActivities.map(activity => (
-                <div key={activity.id} className="mb-6 p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
-                  <p className="text-gray-700">
+            {activeTab === 'activities' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-medium text-gray-900">Activities</h2>
+                {userActivities.map(activity => (
+                  <div key={activity.id} className="bg-white border border-gray-200 rounded-md shadow-sm p-4">
+                    <p className="text-sm text-gray-500">
                     You {activity.type === 'like' ? 'supported' : 'commented on'} the post "{activity.postTitle}" on {activity.date}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
+                    </p>
+                  </div>
+                ))}
+              </div>  
+            )}
 
-          {activeTab === 'saved' && (
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-purple-700">Saved Resources</h3>
-              {savedPosts.map(post => (
-                <div key={post.id} className="mb-6 p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
-                  <h4 className="font-semibold text-lg text-gray-800 mb-2">{post.title}</h4>
-                  <p className="text-gray-600">{post.content}</p>
-                </div>
-              ))}
-            </div>
-          )}
+            {activeTab === 'saved' && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-medium text-gray-900">Saved Resources</h2>
+                {savedPosts.map(post => (
+                  <div key={post.id} className="bg-white border border-gray-200 rounded-md shadow-sm p-4">
+                    <h3 className="text-base font-semibold text-gray-900">{post.title}</h3>
+                    <p className="mt-2 text-sm text-gray-500">{post.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
