@@ -87,14 +87,14 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
         {isJoined ? (
           <button
             onClick={onLeave}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="border-2 border-red-600 hover:bg-red-800 hover:text-white text-red-500 font-semibold py-1 px-3 rounded text-sm transition-colors duration-300"
           >
             Leave
           </button>
-        ) : (
+          ) : (
           <button
             onClick={onJoin}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            className="border-2 border-green-400 hover:bg-green-400 hover:text-white text-green-400 font-semibold py-1 px-3 rounded text-sm transition-colors duration-300"
           >
             Join
           </button>
@@ -103,7 +103,7 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
         {/* Create Poll Button */}
         <button
           onClick={() => setShowCreatePoll(!showCreatePoll)}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4"
+          className="ml-4 border-2 border-blue-400 hover:bg-blue-700 hover:text-white text-blue-400 font-semibold py-1 px-3 rounded text-sm transition-colors duration-300"
         >
           {showCreatePoll ? "Cancel" : "Create Poll"}
         </button>
