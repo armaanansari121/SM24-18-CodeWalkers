@@ -38,6 +38,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       setLoading(false);
     }
   };
+  if (account.toLowerCase() === userToFollow.toLowerCase()) return null;
 
   return (
     <div>
