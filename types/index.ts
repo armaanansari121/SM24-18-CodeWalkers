@@ -1,25 +1,19 @@
 // types/index.ts
 export interface Post {
-    id: string;
-    username: string;
-    userProfileImage: string;
-    title: string;
-    description: string;
-    image?: string;
-    comments: Comment[];
-  }
-  
-  export interface Comment {
-    username: string;
-    content: string;
-  }
+  id: string;
+  username: string;
+  userProfileImage: string;
+  title: string;
+  description: string;
+  image?: string;
+  comments: Comment[];
+  isFollowingAuthor: boolean;
+}
 
-  export interface Subgroup {
-    id: string;
-    name: string;
-    subscriberCount: number;
-    posts: number[];
-  }
+export interface Comment {
+  username: string;
+  content: string;
+}
 
   export interface Proposal {
     id: number;
@@ -32,3 +26,10 @@ export interface Post {
     executed: boolean;
     deadline: number;
   }
+export interface Subgroup {
+  id: string;
+  name: string;
+  subscriberCount: number;
+  posts: number[];
+}
+

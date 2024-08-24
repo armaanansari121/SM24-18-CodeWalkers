@@ -18,14 +18,20 @@ export default function SubgroupFeedPage() {
 
   const [subgroup, setSubgroup] = useState<Subgroup | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isJoined, setIsJoined] = useState<boolean>(false);
+  const [userExists, setUserExists] = useState<boolean>(false);
   const { contract, account } = useContract();
 
   useEffect(() => {
     const fetchSubgroupData = async () => {
       try {
         if (contract) {
+          const userData = await contract.methods.getUser(account).call();
+          setUserExists(userData._exists);
+          // console.log(userData);
+
           const subgroupData = await contract.methods
             .getSubgroup(subgroupId)
             .call();
@@ -35,6 +41,7 @@ export default function SubgroupFeedPage() {
             setError("Subgroup not found");
             return;
           }
+          // console.log(subgroupData);
 
           setSubgroup({
             id: subgroupId,
@@ -44,27 +51,65 @@ export default function SubgroupFeedPage() {
           });
 
           // Fetch posts for this subgroup
-          const postsData = await Promise.all(
-            subgroupData._posts.map((postId: string) =>
-              contract.methods.getPost(postId).call()
-            )
-          );
+          // const postsData = await Promise.all(
+          //   subgroupData._posts.map((postId: string) =>
+          //     contract.methods.getPost(postId).call()
+          //   )
+          // );
 
-          const formattedPosts = postsData.map((post: any, index: number) => ({
-            id: subgroupData._posts[index],
-            title: post._title,
-            description: post._description,
-            username: "", // You'll need to fetch the username separately
-            userProfileImage: "", // You'll need to fetch the user's profile image separately
-            comments: post._comments.map((id: string) => parseInt(id)),
-          }));
+          // const formattedPosts = postsData.map((post: any, index: number) => ({
+          //   id: subgroupData._posts[index],
+          //   title: post._title,
+          //   description: post._description,
+          //   username: "", // You'll need to fetch the username separately
+          //   userProfileImage: "", // You'll need to fetch the user's profile image separately
+          //   comments: post._comments.map((id: string) => parseInt(id)),
+          //   isFollowingAuthor:
+          // }));
+
+          // Assuming your contract has a postCount method
+          const fetchedPosts: Post[] = [];
+
+          for (let i = 0; i <= subgroupData._posts.length; i++) {
+            const post = await contract.methods
+              .getPost(subgroupData._posts[i])
+              .call(); // Assuming your contract has a getPost method
+            // console.log(post);
+            const authorData = await contract.methods
+              .getUser(post._author)
+              .call();
+            // console.log(authorData);
+            let isFollowing = false;
+            for (let i = 0; i < authorData._followers.length; i++) {
+              if (authorData._followers[i] == account) {
+                isFollowing = true;
+                break;
+              }
+            }
+            fetchedPosts.push({
+              id: i.toString(),
+              username: post._author, // Adjust to match your contract's return structure
+              userProfileImage: authorData.imageHash, // Default image or fetched from another source
+              title: post._title,
+              description: post._description,
+              comments: post._comments.map((comment: any) => ({
+                username: comment._username, // Adjust based on your contract
+                content: comment._content, // Adjust based on your contract
+              })),
+              // timestamp: post._timestamp, // Adjust based on your contract
+              image: post._imageHash || null, // Add this if your posts have images
+              isFollowingAuthor: isFollowing,
+            });
+          }
 
           const joined = await contract.methods
-            .isSubscribed(subgroupId, account)
+            .isSubscribed(Number(subgroupId), account)
             .call();
+          console.log(joined);
           setIsJoined(joined);
 
-          setPosts(formattedPosts);
+          setPosts(fetchedPosts);
+          setFilteredPosts(fetchedPosts);
         }
       } catch (error) {
         console.error("Error fetching subgroup data:", error);
@@ -86,7 +131,6 @@ export default function SubgroupFeedPage() {
       }
     }
   };
-
   const handleLeave = async () => {
     if (contract) {
       try {
@@ -99,6 +143,9 @@ export default function SubgroupFeedPage() {
       }
     }
   };
+  const handleSearchResults = (results: Post[]) => {
+    setFilteredPosts(results);
+  };
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
@@ -110,7 +157,7 @@ export default function SubgroupFeedPage() {
 
   return (
     <div className="mt-6 space-y-6">
-      <SearchBar />
+      <SearchBar posts={posts} onSearchResults={handleSearchResults} />
       <SubgroupHeader
         subgroup={subgroup}
         isJoined={isJoined}
@@ -118,7 +165,9 @@ export default function SubgroupFeedPage() {
         onLeave={handleLeave}
       />
       {posts.length > 0 ? (
-        posts.map((post: Post) => <PostCard key={post.id} post={post} />)
+        posts.map((post: Post) => (
+          <PostCard key={post.id} post={post} userExists={userExists} />
+        ))
       ) : (
         <p>No posts found in this subgroup.</p>
       )}
