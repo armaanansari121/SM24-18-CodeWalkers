@@ -1,7 +1,7 @@
 // components/CreatePostModal.tsx
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { useContract } from '../_contexts/ContractContext';
+import React, { useState } from "react";
+import Image from "next/image";
+import { useContract } from "../_contexts/ContractContext";
 import { JWT_SECRET_ACCESS_TOKEN } from "../../app/config";
 
 interface CreatePostModalProps {
@@ -9,7 +9,10 @@ interface CreatePostModalProps {
   onClose: () => void;
 }
 
-const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) => {
+const CreatePostModal: React.FC<CreatePostModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [subgroups, setSubgroups] = useState<string>("");
@@ -31,13 +34,16 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${JWT_SECRET_ACCESS_TOKEN}`,
-        },
-        body: formData,
-      });
+      const res = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${JWT_SECRET_ACCESS_TOKEN}`,
+          },
+          body: formData,
+        }
+      );
 
       if (!res.ok) {
         throw new Error("Failed to upload image to IPFS");
@@ -60,12 +66,17 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     try {
       let imageHash = "";
       if (selectedImage) {
-        imageHash = await handleImageUpload(selectedImage) || "";
+        imageHash = (await handleImageUpload(selectedImage)) || "";
       }
 
-      const subgroupIds = subgroups.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-     
-      await contract.methods.createPost(title, subgroupIds, description, imageHash).send({ from: account });
+      const subgroupIds = subgroups
+        .split(",")
+        .map((id) => parseInt(id.trim()))
+        .filter((id) => !isNaN(id));
+
+      await contract.methods
+        .createPost(title, subgroupIds, description, imageHash)
+        .send({ from: account });
       onClose();
       // Reset form
       setTitle("");
@@ -87,7 +98,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div className="mt-3 text-center">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Create Post</h3>
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Create Post
+          </h3>
           <form onSubmit={handleSubmit} className="mt-2 px-7 py-3">
             <input
               type="text"
@@ -141,7 +154,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
                 type="button"
                 disabled={isLoading}
               >
-                Cancel
+                Close
               </button>
               <button
                 type="submit"

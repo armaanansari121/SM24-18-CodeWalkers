@@ -39,6 +39,7 @@ contract Swartz is Ownable, ReentrancyGuard {
         address author;
         string content;
         uint256 timestamp;
+        uint256 postId;
         bool isDeleted;
     }
 
@@ -146,6 +147,7 @@ contract Swartz is Ownable, ReentrancyGuard {
             msg.sender,
             _content,
             block.timestamp,
+            _postId,
             false
         );
         posts[_postId].comments.push(commentCount);
@@ -326,7 +328,8 @@ contract Swartz is Ownable, ReentrancyGuard {
             uint256[] memory _userComments,
             address[] memory _followers,
             address[] memory _following,
-            uint256[] memory _subgroupsJoined
+            uint256[] memory _subgroupsJoined,
+            uint256[] memory _savedPosts
         )
     {
         User storage user = users[_user];
@@ -337,6 +340,7 @@ contract Swartz is Ownable, ReentrancyGuard {
         _followers = user.followers;
         _following = user.following;
         _subgroupsJoined = user.subgroupsJoined;
+        _savedPosts = user.savedPosts;
     }
 
     function getPost(uint256 _postId)
@@ -379,5 +383,12 @@ contract Swartz is Ownable, ReentrancyGuard {
         _name = subgroup.name;
         _posts = subgroup.posts;
         _subscriberCount = subgroup.subscriberCount;
+    }
+
+    function isSubscribed(uint256 _subgroupId, address _user) public view returns (
+        bool
+    ) {
+        Subgroup storage subgroup = subgroups[_subgroupId];
+        return subgroup.subscribers[_user];
     }
 }
