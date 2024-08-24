@@ -51,6 +51,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
           content: comment.content,
         }))
       );
+      const isSaved = await contract.methods.isPostSaved(post.id, account).call();
+    setSaved(isSaved);
     } catch (error) {
       console.error("Error loading post data:", error);
     }
@@ -195,25 +197,25 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
           <button
             onClick={handleSave}
             className={`flex items-center space-x-2 transition-colors duration-200 ${
-              saved ? "text-blue-500" : "hover:text-blue-500"
-            }`}
+            saved ? "text-gray-700" : "hover:text-gray-700"
+           }`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill={saved ? "currentColor" : "none"}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-              />
-            </svg>
-            <span>{saved ? "Saved" : "Save"}</span>
-          </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill={saved ? "gray" : "none"}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+          />
+          </svg>
+          <span>{saved ? "Saved" : "Save"}</span>
+      </button>
         </div>
       </div>
       {showComments && (
