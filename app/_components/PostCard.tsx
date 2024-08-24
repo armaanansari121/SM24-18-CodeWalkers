@@ -14,6 +14,7 @@ interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
+  const [isRevealed, setIsRevealed] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [liked, setLiked] = useState(false);
@@ -52,14 +53,35 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
           content: comment.content,
         }))
       );
-      // const isSaved = await contract.methods
-      //   .isPostSaved(post.id, account)
-      //   .call();
-      // setSaved(isSaved);
     } catch (error) {
       console.error("Error loading post data:", error);
     }
   };
+
+  const handleReveal = () => {
+    setIsRevealed(true);
+  };
+
+  if (post.isBlurred && !isRevealed) {
+    return (
+      <div className="bg-white shadow rounded-lg p-6 relative">
+        <div className="filter blur-sm">
+          <div className="h-48 bg-gray-200"></div>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center bg-white p-4 rounded-lg shadow-lg">
+            <p className="mb-2">This post may contain sensitive content.</p>
+            <button
+              onClick={handleReveal}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200"
+            >
+              Reveal Content
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleLike = async () => {
     if (userExists) {
@@ -107,7 +129,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
           .send({ from: account });
         setComments([...comments, { username: account, content: newComment }]);
         setNewComment("");
-        // Reload comments to get the updated list from the contract
         loadPostData();
       } catch (error) {
         console.error("Error commenting on post:", error);
@@ -116,8 +137,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
       alert("You must be logged in to comment on posts");
     }
   };
-  // console.log(post);
-  // console.log(post.userProfileImage);
 
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300">

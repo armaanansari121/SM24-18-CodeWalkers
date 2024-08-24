@@ -8,6 +8,7 @@ export interface Post {
   image?: string;
   comments: Comment[];
   isFollowingAuthor: boolean;
+  isBlurred?: boolean;
 }
 
 export interface Comment {
