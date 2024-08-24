@@ -174,7 +174,6 @@ const Sidebar = () => {
             </button>
           </div>
         </nav>
-        <WalletDropdown />
         <div className="p-4 border-t border-gray-200">
           <Link
             href="/profile"
