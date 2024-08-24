@@ -1,15 +1,12 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { Proposal, Subgroup } from "@/types";
-import React, { useState, useEffect } from "react";
-
-import Web3 from "web3";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useContract } from "../_contexts/ContractContext";
 
 interface SubgroupHeaderProps {
   subgroup: Subgroup;
   isJoined: boolean;
-  onJoin: () => void; // Handler for joining the subgroup
-  onLeave: () => void; // Handler for leaving the subgroup
+  onJoin: () => void;
+  onLeave: () => void;
 }
 
 const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
@@ -20,22 +17,15 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
 }) => {
   const [showCreatePoll, setShowCreatePoll] = useState(false);
   const [pollDescription, setPollDescription] = useState("");
-  const [voteThreshold, setVoteThreshold] = useState("");
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const { GovernanceContract, account } = useContract();
 
-  useEffect(() => {
-    fetchProposals();
-  }, [GovernanceContract]);
-
-  const fetchProposals = async () => {
-    if (GovernanceContract) {
+  const fetchProposals = useCallback(async () => {
+    if (GovernanceContract && GovernanceContract.methods) {
       try {
-        const proposalCount = await GovernanceContract.methods
-          .proposalCount()
-          .call();
+        const proposalCount = await GovernanceContract.methods.proposalCount().call();
         const fetchedProposals = await Promise.all(
-          Array.from({ length: proposalCount }, (_, i) =>
+          Array.from({ length: Number(proposalCount) }, (_, i) =>
             GovernanceContract.methods.proposals(i + 1).call()
           )
         );
@@ -44,20 +34,28 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
         console.error("Error fetching proposals:", error);
       }
     }
-  };
+  }, [GovernanceContract]);
+
+  useEffect(() => {
+    fetchProposals();
+    const interval = setInterval(fetchProposals, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchProposals]);
+
+  // Filter proposals for the current subgroup
+  const filteredProposals = useMemo(() => {
+    return proposals.filter(proposal => proposal && Number(proposal.subgroupId) === Number(subgroup.id));
+
+  }, [proposals, subgroup.id]);
 
   const handleCreatePoll = async () => {
-    if (GovernanceContract && pollDescription && voteThreshold) {
+    if (GovernanceContract && GovernanceContract.methods && pollDescription) {
       try {
         await GovernanceContract.methods
-          .createProposal(
-            pollDescription,
-            Web3.utils.toWei(voteThreshold, "ether")
-          )
+          .createProposal(pollDescription, subgroup.subscriberCount, subgroup.id)
           .send({ from: account });
         setShowCreatePoll(false);
         setPollDescription("");
-        setVoteThreshold("");
         fetchProposals();
       } catch (error) {
         console.error("Error creating proposal:", error);
@@ -66,7 +64,7 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
   };
 
   const handleVote = async (proposalId: number, support: boolean) => {
-    if (GovernanceContract) {
+    if (GovernanceContract && GovernanceContract.methods) {
       try {
         await GovernanceContract.methods
           .vote(proposalId, support)
@@ -77,33 +75,30 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
       }
     }
   };
+  console.log(proposals);
 
   return (
     <div className="bg-white shadow rounded-lg p-6 mb-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl text-black font-bold">{subgroup.name}</h1>
-
-        {/* Join/Leave Button */}
         {isJoined ? (
           <button
             onClick={onLeave}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="border-2 border-red-600 hover:bg-red-800 hover:text-white text-red-500 font-semibold py-1 px-3 rounded text-sm transition-colors duration-300"
           >
             Leave
           </button>
-        ) : (
+          ) : (
           <button
             onClick={onJoin}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            className="border-2 border-green-400 hover:bg-green-400 hover:text-white text-green-400 font-semibold py-1 px-3 rounded text-sm transition-colors duration-300"
           >
             Join
           </button>
         )}
-
-        {/* Create Poll Button */}
         <button
           onClick={() => setShowCreatePoll(!showCreatePoll)}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4"
+          className="ml-4 border-2 border-blue-400 hover:bg-blue-700 hover:text-white text-blue-400 font-semibold py-1 px-3 rounded text-sm transition-colors duration-300"
         >
           {showCreatePoll ? "Cancel" : "Create Poll"}
         </button>
@@ -122,13 +117,7 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
             placeholder="Poll description"
             className="w-full text-black p-2 mb-2 border rounded"
           />
-          <input
-            type="number"
-            value={voteThreshold}
-            onChange={(e) => setVoteThreshold(e.target.value)}
-            placeholder="Vote threshold"
-            className="w-full text-black p-2 mb-2 border rounded"
-          />
+          
           <button
             onClick={handleCreatePoll}
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
@@ -137,15 +126,14 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
           </button>
         </div>
       )}
-
-      <div className="space-y-4">
+  
+  <div className="space-y-4">
         <h2 className="text-2xl text-gray-800 font-semibold">Active Polls</h2>
-        {proposals.map((proposal) => (
+        {filteredProposals.filter(p => !p.executed && p.deadline).map((proposal) => (
           <div key={proposal.id} className="border p-4 rounded">
-            <p className="font-semibold">{proposal.description}</p>
+            <p className="font-semibold text-black">{proposal.description}</p>
             <p className="text-sm text-gray-600">
-              Votes For: {proposal.votesFor} | Votes Against:{" "}
-              {proposal.votesAgainst}
+              Votes For: {Number(proposal.votesFor)} | Votes Against: {Number(proposal.votesAgainst)}
             </p>
             <div className="mt-2">
               <button
@@ -156,7 +144,7 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
               </button>
               <button
                 onClick={() => handleVote(proposal.id, false)}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded mr-2"
               >
                 Vote Against
               </button>
@@ -164,7 +152,19 @@ const SubgroupHeader: React.FC<SubgroupHeaderProps> = ({
           </div>
         ))}
       </div>
-    </div>
+
+      <h2 className="text-2xl text-gray-800 font-semibold mt-8">Executed Polls</h2>
+      {filteredProposals.filter(p => p.executed).map((proposal) => (
+        <div key={proposal.id} className="border p-4 rounded bg-gray-100">
+          <p className="font-semibold text-black">{proposal.description}</p>
+          <p className="text-sm text-gray-600">
+            Final Votes: For: {Number(proposal.votesFor)} | Against: {Number(proposal.votesAgainst)}
+          </p>
+          <p className="text-green-600 mt-2">This proposal has been executed.</p>
+        </div>
+      ))}
+</div>
+    
   );
 };
 

@@ -15,6 +15,17 @@ export interface Comment {
   content: string;
 }
 
+  export interface Proposal {
+    id: number;
+    subgroupId: string;
+    proposer: string;
+    description: string;
+    votesFor: number;
+    votesAgainst: number;
+    voteThreshold: number;
+    executed: boolean;
+    deadline: number;
+  }
 export interface Subgroup {
   id: string;
   name: string;
@@ -22,13 +33,3 @@ export interface Subgroup {
   posts: number[];
 }
 
-export interface Proposal {
-  id: number;
-  proposer: string;
-  description: string;
-  votesFor: number;
-  votesAgainst: number;
-  voteThreshold: number;
-  executed: boolean;
-  deadline: number;
-}
