@@ -39,7 +39,7 @@ export default function FeedsPage() {
           fetchedPosts.push({
             id: i.toString(),
             username: post._author, // Adjust to match your contract's return structure
-            userProfileImage: authorData.imageHash, // Default image or fetched from another source
+            userProfileImage: authorData._imageHash, // Default image or fetched from another source
             title: post._title,
             description: post._description,
             comments: post._comments.map((comment: any) => ({
