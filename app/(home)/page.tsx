@@ -5,6 +5,7 @@ import { useContract } from "../_contexts/ContractContext"; // Assuming this pro
 import { Post } from "../../types";
 import PostCard from "../_components/PostCard";
 import SearchBar from "../_components/SearchBar";
+import Loader from "../_components/Loader";
 
 export default function FeedsPage() {
   const { contract, account } = useContract();
@@ -26,12 +27,15 @@ export default function FeedsPage() {
 
         for (let i = 1; i <= postCount; i++) {
           const post = await contract.methods.getPost(i).call(); // Assuming your contract has a getPost method
+          if (post._isDeleted) continue;
           const authorData = await contract.methods
             .getUser(post._author)
             .call();
           let isFollowing = false;
           for (let i = 0; i < authorData._followers.length; i++) {
-            if (authorData._followers[i] == account) {
+            if (
+              authorData._followers[i].toLowerCase() == account.toLowerCase()
+            ) {
               isFollowing = true;
               break;
             }
@@ -68,7 +72,7 @@ export default function FeedsPage() {
     setFilteredPosts(results);
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loader />;
 
   return (
     <>

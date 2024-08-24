@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useContract } from "../../_contexts/ContractContext";
 import CreateUserModal from "../../_components/CreateUserModal";
 import { Gateway_url } from "@/app/config";
+import Loader from "../../_components/Loader"; // Import the Loader component
 
 interface UserProfile {
   imageHash: string;
@@ -51,19 +52,21 @@ const ProfilePage = () => {
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
   const [userExists, setUserExists] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true); // Add loading state
 
-  const handleCreateProfile = async (imageFile: File | null, ipfsHash: string | null) => {
+  const handleCreateProfile = async (
+    imageFile: File | null,
+    ipfsHash: string | null
+  ) => {
     if (!contract || !account || !ipfsHash) {
       console.error("Missing required data for profile creation");
       return;
     }
 
     try {
-    
       await contract.methods.createUser(ipfsHash).send({ from: account });
       console.log("User profile created successfully");
       setShowModal(false);
-      // Refetch user data to update the UI
       await fetchUserData();
     } catch (error) {
       console.error("Error creating user profile:", error);
@@ -71,8 +74,8 @@ const ProfilePage = () => {
     }
   };
 
-  // Fetching user data function
   const fetchUserData = async () => {
+    setLoading(true); // Start loading when fetching data
     if (contract && account) {
       try {
         const userData = await contract.methods.getUser(account).call();
@@ -84,23 +87,25 @@ const ProfilePage = () => {
         if (_exists) {
           setUserProfile({
             imageHash: _imageHash,
-            username: account, // Replace with actual username if available
+            username: account,
           });
 
-          await fetchUserPosts(_userPosts); // Unchanged function
-          await fetchUserActivities(_userComments); // Unchanged function
-          await fetchSavedPosts(_savedPosts); // Newly added function call
+          await fetchUserPosts(_userPosts);
+          await fetchUserActivities(_userComments);
+          await fetchSavedPosts(_savedPosts);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false); // Stop loading once data is fetched
       }
+    } else {
+      setLoading(false); // Stop loading if contract or account is unavailable
     }
   };
 
-  // Fetch user posts function
   const fetchUserPosts = async (postIds: string[]): Promise<Post[]> => {
     const posts: Post[] = [];
-
     for (const postId of postIds) {
       const postData = await contract.methods.getPost(postId).call();
       if (!postData._isDeleted) {
@@ -120,19 +125,16 @@ const ProfilePage = () => {
     return posts;
   };
 
-  // Fetch user activities function
   const fetchUserActivities = async (
     commentIds: string[]
   ): Promise<Activity[]> => {
     const activities: Activity[] = [];
-
     for (const commentId of commentIds) {
       const commentData = await contract.methods.comments(commentId).call();
       if (!commentData.isDeleted) {
         const postData = await contract.methods
           .getPost(commentData.postId)
           .call();
-        // const postTitle = `Post related to comment ${commentId}`; // Fetch the actual post title if necessary
         activities.push({
           id: commentId,
           content: commentData.content,
@@ -146,12 +148,11 @@ const ProfilePage = () => {
     return activities;
   };
 
-  // Placeholder for fetching saved posts
   const fetchSavedPosts = async (postIds: string[]): Promise<SavedPost[]> => {
     const posts = [];
     for (const postId of postIds) {
       const postData = await contract.methods.getPost(postId).call();
-      if (postData._isDeleted) continue; // Skip deleted posts
+      if (postData._isDeleted) continue;
       posts.push({
         id: postId,
         title: postData._title,
@@ -164,13 +165,17 @@ const ProfilePage = () => {
         imageHash: postData._imageHash,
       });
     }
-    setSavedPosts(posts); // Setting state for saved posts
+    setSavedPosts(posts);
     return posts;
   };
 
   useEffect(() => {
     fetchUserData();
   }, [contract, account]);
+
+  if (loading) {
+    return <Loader />; // Show loader while loading is true
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -253,24 +258,28 @@ const ProfilePage = () => {
                                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                                 />
                               </svg>
-                              <span className="ml-1 text-sm text-gray-500">
-                                {Number(post.likeCount)}
-                              </span>
+                              <span className="pl-1">{post.likeCount}</span>
+                            </div>
+                            <div className="py-4">
+                              <Image
+                                src={`${Gateway_url}/ipfs/${post.imageHash}`}
+                                alt={post.title}
+                                width={200}
+                                height={200}
+                                className="rounded-lg"
+                              />
                             </div>
                           </div>
                         ))
                       ) : (
-                        <p className="text-gray-500">
-                          You don't have any posts yet.
-                        </p>
+                        <p className="text-sm text-gray-500">No posts found.</p>
                       )}
                     </div>
                   )}
-
                   {activeTab === "comments" && (
                     <div className="space-y-6">
                       <h2 className="text-lg font-medium text-gray-900">
-                        Comments
+                        My Activities
                       </h2>
                       {userActivities.length > 0 ? (
                         userActivities.map((activity) => (
@@ -278,32 +287,29 @@ const ProfilePage = () => {
                             key={activity.id}
                             className="bg-white border border-gray-200 rounded-md shadow-sm p-4"
                           >
-                            <p className="text-lg text-black">
-                              {activity.postTitle}
+                            <p className="text-sm text-gray-600">
+                              Commented on {activity.postTitle} by{" "}
+                              {activity.postAuthor}:
                             </p>
-                            <p className="text-base text-black">
-                              {activity.postAuthor}
-                            </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="mt-2 text-sm text-gray-500">
                               {activity.content}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs text-gray-400 mt-1">
                               {activity.date}
                             </p>
                           </div>
                         ))
                       ) : (
-                        <p className="text-gray-500">
-                          You don't have any recent comments.
+                        <p className="text-sm text-gray-500">
+                          No activities found.
                         </p>
                       )}
                     </div>
                   )}
-
                   {activeTab === "saved" && (
                     <div className="space-y-6">
                       <h2 className="text-lg font-medium text-gray-900">
-                        Saved Resources
+                        Saved Posts
                       </h2>
                       {savedPosts.length > 0 ? (
                         savedPosts.map((post) => (
@@ -311,37 +317,29 @@ const ProfilePage = () => {
                             key={post.id}
                             className="bg-white border border-gray-200 rounded-md shadow-sm p-4"
                           >
-                            <p className="text-lg text-black">{post.title}</p>
-                            <p className="text-base text-black">
-                              {post.author}
-                            </p>
-                            <p className="text-sm text-gray-500">
+                            <h3 className="text-base font-semibold text-gray-900">
+                              {post.title}
+                            </h3>
+                            <p className="mt-2 text-sm text-gray-500">
                               {post.description}
                             </p>
-                            <div className="flex">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-6 w-6"
-                                fill="red"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                />
-                              </svg>
-                              <span className="ml-1 text-sm text-gray-500">
-                                {Number(post.likeCount)}
-                              </span>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {post.timestamp}
+                            </p>
+                            <div className="py-4">
+                              <Image
+                                src={`${Gateway_url}/ipfs/${post.imageHash}`}
+                                alt={post.title}
+                                width={200}
+                                height={200}
+                                className="rounded-lg"
+                              />
                             </div>
                           </div>
                         ))
                       ) : (
-                        <p className="text-gray-500">
-                          You don't have any saved posts.
+                        <p className="text-sm text-gray-500">
+                          No saved posts found.
                         </p>
                       )}
                     </div>
@@ -350,32 +348,29 @@ const ProfilePage = () => {
               </>
             ) : (
               <div className="text-center">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Welcome, {account}
-                </h2>
-                <p className="text-gray-500 mt-4">
-                  It looks like you don't have a profile yet.
+                <h1 className="text-3xl font-bold mb-6 text-gray-900">
+                  Create Your Profile
+                </h1>
+                <p className="text-gray-600 mb-8">
+                  You haven't created a profile yet. Click the button below to
+                  get started!
                 </p>
                 <button
-                  className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-md"
                   onClick={() => setShowModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md"
                 >
                   Create Profile
                 </button>
+                <CreateUserModal
+                  isOpen={showModal}
+                  onClose={() => setShowModal(false)}
+                  onSubmit={handleCreateProfile}
+                />
               </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Profile creation modal */}
-      {showModal && (
-        <CreateUserModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          onSubmit={handleCreateProfile}
-        />
-      )}
     </div>
   );
 };
