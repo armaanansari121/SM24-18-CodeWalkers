@@ -10,7 +10,7 @@ df = pd.read_csv('HateSpeech_cleaned.csv')
 tokenizer = Tokenizer(num_words=5000, oov_token="<OOV>")
 tokenizer.fit_on_texts(df['Comment'])
 sequences = tokenizer.texts_to_sequences(df['Comment'])
-padded_sequences = pad_sequences(sequences, maxlen=100, padding='post', truncating='post')
+padded_sequences = pad_sequences(sequences, maxlen=1000, padding='post', truncating='post')
 
 le = LabelEncoder()
 labels = le.fit_transform(df['Hateful'])
@@ -29,8 +29,8 @@ model = tf.keras.Sequential([
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 
-history = model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test), batch_size=64)
+history = model.fit(X_train, y_train, epochs=100, validation_data=(X_test, y_test), batch_size=64)
 
-model.save('/content/model.keras')
+model.save('/model.keras')
 
 
