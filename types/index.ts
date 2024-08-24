@@ -23,6 +23,7 @@ export interface Post {
 
   export interface Proposal {
     id: number;
+    subgroupId: string;
     proposer: string;
     description: string;
     votesFor: number;
