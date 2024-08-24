@@ -5,5 +5,5 @@ const client = createThirdwebClient({
 });
 
 export default function ConnectWallet() {
-  return <ConnectButton client={client} />;
+  return <ConnectButton client={client} theme={"light"} />;
 }
