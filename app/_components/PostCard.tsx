@@ -34,7 +34,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
 
   const loadPostData = async () => {
     try {
-      console.log(post.id);
+      // console.log(post.id);
       const postData = await contract.methods.getPost(post.id).call();
       setLikeCount(parseInt(postData._likeCount));
 
