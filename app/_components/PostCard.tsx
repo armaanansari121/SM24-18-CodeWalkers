@@ -6,6 +6,7 @@ import { ContractContext } from "../_contexts/ContractContext";
 import { Gateway_url } from "../config";
 import { useRouter } from "next/router";
 import FollowButton from "./FollowButton";
+import UnfollowButton from "./UnfollowButton";
 
 interface PostCardProps {
   post: Post;
@@ -128,9 +129,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
             {post.username}
           </span>
           <span className="ml-auto text-xs text-gray-600">
-            {!isFollowing && (
+            {!isFollowing ? (
               <FollowButton
                 userToFollow={post.username}
+                stateChange={setIsFollowing}
+              />
+            ) : (
+              <UnfollowButton
+                userToUnfollow={post.username}
                 stateChange={setIsFollowing}
               />
             )}
