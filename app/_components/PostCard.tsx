@@ -33,6 +33,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
 
   const loadPostData = async () => {
     try {
+      console.log(post.id);
       const postData = await contract.methods.getPost(post.id).call();
       setLikeCount(parseInt(postData._likeCount));
 
@@ -40,7 +41,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, userExists }) => {
       setLiked(isLiked);
 
       const userData = await contract.methods.getUser(account).call();
-      setSaved(userData._savedPosts.includes(post.id.toString()));
+      console.log(userData._savedPosts);
+      // setSaved(userData._savedPosts.includes(post.id.toString()));
+      for (let i = 0; i < userData._savedPosts.length; i++) {
+        if (Number(userData._savedPosts[i]) == Number(post.id)) {
+          setSaved(true);
+          break;
+        }
+      }
 
       const commentPromises = postData._comments.map((commentId: string) =>
         contract.methods.comments(commentId).call()
