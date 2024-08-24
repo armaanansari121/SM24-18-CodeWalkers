@@ -41,7 +41,7 @@ export default function SubgroupFeedPage() {
             setError("Subgroup not found");
             return;
           }
-          // console.log(subgroupData);
+          console.log(subgroupData);
 
           setSubgroup({
             id: subgroupId,
@@ -70,9 +70,10 @@ export default function SubgroupFeedPage() {
           // Assuming your contract has a postCount method
           const fetchedPosts: Post[] = [];
 
-          for (let i = 0; i <= subgroupData._posts.length; i++) {
+          for (let i = 0; i < subgroupData._posts.length; i++) {
+            console.log(Number(subgroupData._posts[i]));
             const post = await contract.methods
-              .getPost(subgroupData._posts[i])
+              .getPost(Number(subgroupData._posts[i]))
               .call(); // Assuming your contract has a getPost method
             // console.log(post);
             const authorData = await contract.methods
@@ -101,15 +102,14 @@ export default function SubgroupFeedPage() {
               isFollowingAuthor: isFollowing,
             });
           }
+          setPosts(fetchedPosts);
+          setFilteredPosts(fetchedPosts);
 
           const joined = await contract.methods
             .isSubscribed(Number(subgroupId), account)
             .call();
           console.log(joined);
           setIsJoined(joined);
-
-          setPosts(fetchedPosts);
-          setFilteredPosts(fetchedPosts);
         }
       } catch (error) {
         console.error("Error fetching subgroup data:", error);

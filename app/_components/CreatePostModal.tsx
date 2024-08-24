@@ -96,7 +96,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div className="relative top-20 mx-auto p-5 border w-4/6 shadow-lg rounded-md bg-white">
         <div className="mt-3 text-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
             Create Post
@@ -114,7 +114,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Description"
-              className="mt-2 px-3 py-2 bg-white border text-black shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block w-full rounded-md sm:text-sm focus:ring-1"
+              className="mt-2 px-3 py-2 size-64 bg-white border text-black shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block w-full rounded-md sm:text-sm focus:ring-1"
               required
             />
             <input
@@ -125,8 +125,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
               className="mt-2 px-3 py-2 bg-white border text-black shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block w-full rounded-md sm:text-sm focus:ring-1"
               required
             />
-            <div className="mt-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            
+            <div className="mt-2 flex">
+              <label className="text-sm font-medium text-gray-700 mb-2 ">
                 Post Image
               </label>
               <input
@@ -150,7 +151,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <div className="items-center px-4 py-3">
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="px-4 py-2 mr-4 bg-gray-500 text-white text-base font-medium rounded-md w-48 shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
                 type="button"
                 disabled={isLoading}
               >
@@ -158,7 +159,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="mt-3 px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="mt-3 px-4 py-2 bg-blue-500 text-white text-base w-48 font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating Post..." : "Create Post"}
