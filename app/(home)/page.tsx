@@ -8,11 +8,11 @@ import SearchBar from "../_components/SearchBar";
 import Loader from "../_components/Loader";
 
 // Add these lines at the top of your file
-const sensitiveKeywords = ['offensive', 'inappropriate', 'explicit', 'nsfw'];
+const sensitiveKeywords = ["offensive", "inappropriate", "explicit", "nsfw"];
 
 const containsSensitiveContent = (post: Post): boolean => {
   const content = `${post.title} ${post.description}`.toLowerCase();
-  return sensitiveKeywords.some(keyword => content.includes(keyword));
+  return sensitiveKeywords.some((keyword) => content.includes(keyword));
 };
 
 export default function FeedsPage() {
@@ -34,12 +34,8 @@ export default function FeedsPage() {
         const fetchedPosts: Post[] = [];
 
         for (let i = 1; i <= postCount; i++) {
-<<<<<<< HEAD
-          const post = await contract.methods.getPost(i).call();
-=======
           const post = await contract.methods.getPost(i).call(); // Assuming your contract has a getPost method
           if (post._isDeleted) continue;
->>>>>>> 1ba65e6a74d95b82a9967637a4217ee0afbd8651
           const authorData = await contract.methods
             .getUser(post._author)
             .call();
@@ -65,7 +61,10 @@ export default function FeedsPage() {
             image: post._imageHash || null,
             isFollowingAuthor: isFollowing,
             // Add this line to determine if the post should be blurred
-            isBlurred: containsSensitiveContent({ title: post._title, description: post._description } as Post),
+            isBlurred: containsSensitiveContent({
+              title: post._title,
+              description: post._description,
+            } as Post),
           });
         }
 
